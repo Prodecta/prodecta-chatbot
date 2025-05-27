@@ -7,13 +7,20 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/botui/build/botui.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/botui/build/botui-theme-default.css" />
   <style>
+    /* Reset et styles globaux */
+    * {
+      box-sizing: border-box;
+    }
+    
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f0f2f5;
       margin: 0;
       padding: 0;
+      min-height: 100vh;
     }
-
+    
+    /* Container principal du chatbot */
     .botui-app-container {
       width: 400px;
       height: 600px;
@@ -22,121 +29,343 @@
       right: 20px;
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-      background-color: #f4f6f9;
+      box-shadow: 0 5px 30px rgba(0, 0, 0, 0.15);
+      background-color: #f5f6f8;
       display: flex;
       flex-direction: column;
       z-index: 9999;
     }
-
+    
+    /* Header du chat */
     .chat-header {
-      background-color: #101010;
+      background-color: #000000;
       color: #fff;
       display: flex;
       align-items: center;
-      padding: 12px 16px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-
+    
     .chat-header img {
-      width: 24px;
-      height: 24px;
+      width: 32px;
+      height: 32px;
       margin-right: 12px;
+      border-radius: 50%;
     }
-
-    .chat-header h4 {
-      font-size: 1rem;
-      margin: 0;
-    }
-
-    .chat-header span {
-      font-size: 0.75rem;
-      color: #ccc;
-    }
-
+    
     .chat-header-text {
       display: flex;
       flex-direction: column;
     }
-
+    
+    .chat-header h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0;
+      color: #ffffff;
+    }
+    
+    .chat-header span {
+      font-size: 12px;
+      color: #b0b0b0;
+      margin-top: 2px;
+    }
+    
+    /* Container BotUI */
+    #botui-app {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
     .botui-container {
-      flex-grow: 1;
-      padding: 1rem;
-      background-color: #f4f6f9;
+      flex: 1;
+      background-color: #f5f6f8;
+      padding: 20px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
     }
-
+    
+    /* Messages */
+    .botui-messages-container {
+      padding-bottom: 20px;
+    }
+    
     .botui-message {
-      border-radius: 12px !important;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 12px;
+      animation: fadeInUp 0.3s ease-out;
+    }
+    
+    /* Message du bot */
+    .botui-message-content {
+      border-radius: 18px !important;
+      padding: 12px 16px !important;
+      max-width: 80%;
       font-size: 14px;
-      line-height: 1.4;
+      line-height: 1.5;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      word-wrap: break-word;
     }
-
-    .botui-message-content.botui-message-content-human {
-      background-color: #20e293;
-      color: #fff;
+    
+    .botui-message-content.text {
+      background-color: #ffffff !important;
+      color: #000000 !important;
+      border: 1px solid #e0e0e0;
     }
-
-    .botui-message-content.botui-message-content-bot {
-      background-color: #000;
-      color: #fff;
+    
+    /* Message de l'utilisateur */
+    .botui-message-content.human {
+      background-color: #00e58c !important;
+      color: #ffffff !important;
+      margin-left: auto !important;
+      border: none !important;
     }
-
+    
+    /* Animation de typing */
+    .botui-message-content.loading {
+      background-color: #ffffff !important;
+      color: #999 !important;
+      border: 1px solid #e0e0e0;
+    }
+    
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #999;
+      margin: 0 2px;
+      animation: typing 1.4s infinite;
+    }
+    
+    .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    
+    /* Zone d'actions */
+    .botui-actions-container {
+      padding: 12px 20px;
+      background-color: #ffffff;
+      border-top: 1px solid #e0e0e0;
+    }
+    
     .botui-actions-text-input {
-      border-radius: 8px;
-      padding: 0.6rem;
-      font-size: 14px;
+      width: 100% !important;
+      border: 1px solid #e0e0e0 !important;
+      border-radius: 24px !important;
+      padding: 10px 16px !important;
+      font-size: 14px !important;
+      outline: none !important;
+      transition: border-color 0.2s;
     }
-
-    .botui-actions-buttons-button {
-      border-radius: 8px;
+    
+    .botui-actions-text-input:focus {
+      border-color: #00e58c !important;
+    }
+    
+    .botui-actions-text-submit {
+      background-color: #00e58c !important;
+      color: white !important;
+      border: none !important;
+      border-radius: 50% !important;
+      width: 36px !important;
+      height: 36px !important;
+      margin-left: 8px !important;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .botui-actions-text-submit:hover {
+      background-color: #00c97a !important;
+    }
+    
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes typing {
+      0%, 60%, 100% {
+        opacity: 0.2;
+        transform: scale(0.8);
+      }
+      30% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    
+    /* Responsive */
+    @media (max-width: 450px) {
+      .botui-app-container {
+        width: 100%;
+        height: 100%;
+        bottom: 0;
+        right: 0;
+        border-radius: 0;
+      }
+    }
+    
+    /* Scrollbar personnalisée */
+    .botui-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .botui-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .botui-container::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 3px;
+    }
+    
+    .botui-container::-webkit-scrollbar-thumb:hover {
+      background: #aaa;
     }
   </style>
 </head>
 <body>
   <div class="botui-app-container">
+    <!-- Header du chat -->
     <div class="chat-header">
       <img src="https://assets.zyrosite.com/A1aPnpVLLRcE3wrw/design-sans-titre-YZ98G20Zg8SxoeM1.png" alt="Logo Prodecta" />
       <div class="chat-header-text">
         <h4>Assistant Prodecta</h4>
-        <span>L’assistant qui vous accompagne 7j/7 24h/24</span>
+        <span>L'assistant qui vous accompagne 7j/7 24h/24</span>
       </div>
     </div>
+    
+    <!-- Container BotUI -->
     <div id="botui-app">
       <bot-ui></bot-ui>
     </div>
   </div>
 
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/botui/build/botui.min.js"></script>
   <script>
+    // Configuration du webhook
+    const WEBHOOK_URL = 'https://n8n.prodecta.shop/webhook/86d401ec-3893-4299-91a5-90c5236fe552/chat';
+    
+    // Initialisation de BotUI
     var botui = new BotUI('botui-app');
-
+    
+    // Message de bienvenue
     botui.message.add({
+      delay: 500,
       content: 'Bonjour ! Comment puis-je vous assister aujourd\'hui ?'
     });
-
-    botui.action.text({
-      action: {
-        placeholder: 'Écrivez votre question ici...'
-      }
-    }).then(function (res) {
-      // Envoie au webhook N8N ici :
-      fetch('https://n8n.prodecta.shop/webhook/86d401ec-3893-4299-91a5-90c5236fe552/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ message: res.value })
-      })
-      .then(response => response.json())
-      .then(data => {
+    
+    // Fonction pour créer l'animation de typing
+    function showTyping() {
+      return botui.message.add({
+        loading: true,
+        content: '<span class="dot"></span><span class="dot"></span><span class="dot"></span>'
+      });
+    }
+    
+    // Fonction pour gérer la conversation
+    function startConversation() {
+      botui.action.text({
+        action: {
+          placeholder: 'Écrivez votre question ici...',
+          button: {
+            icon: 'send',
+            label: 'Envoyer'
+          }
+        }
+      }).then(function(res) {
+        // Afficher le message de l'utilisateur
         botui.message.add({
-          content: data.reply || "Merci pour votre message !"
+          human: true,
+          content: res.value
+        });
+        
+        // Afficher l'animation de typing
+        showTyping().then(function(index) {
+          // Envoyer au webhook
+          fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+              message: res.value,
+              sessionId: getOrCreateSessionId()
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            // Supprimer l'animation de typing
+            botui.message.remove(index);
+            
+            // Afficher la réponse du bot
+            botui.message.add({
+              delay: 300,
+              content: data.reply || data.message || "Je suis désolé, je n'ai pas pu traiter votre demande. Pouvez-vous reformuler ?"
+            }).then(function() {
+              // Continuer la conversation
+              startConversation();
+            });
+          })
+          .catch(error => {
+            console.error('Erreur:', error);
+            // Supprimer l'animation de typing
+            botui.message.remove(index);
+            
+            // Message d'erreur
+            botui.message.add({
+              content: 'Désolé, une erreur s\'est produite. Veuillez réessayer.'
+            }).then(function() {
+              // Continuer la conversation malgré l'erreur
+              startConversation();
+            });
+          });
         });
       });
+    }
+    
+    // Fonction pour gérer l'ID de session
+    function getOrCreateSessionId() {
+      let sessionId = sessionStorage.getItem('prodecta_chat_session');
+      if (!sessionId) {
+        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        sessionStorage.setItem('prodecta_chat_session', sessionId);
+      }
+      return sessionId;
+    }
+    
+    // Démarrer la conversation après le message de bienvenue
+    setTimeout(function() {
+      startConversation();
+    }, 1000);
+    
+    // Gérer le scroll automatique vers le bas
+    const observer = new MutationObserver(function() {
+      const container = document.querySelector('.botui-container');
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    });
+    
+    observer.observe(document.querySelector('#botui-app'), {
+      childList: true,
+      subtree: true
     });
   </script>
 </body>
 </html>
-
-
