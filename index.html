@@ -44,6 +44,7 @@
       align-items: center;
       padding: 16px 20px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      flex-shrink: 0;
     }
     
     .chat-header img {
@@ -77,24 +78,48 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      position: relative;
     }
     
     .botui-container {
       flex: 1;
       background-color: #f5f6f8;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Messages container avec padding bottom pour l'input */
+    .botui-messages-container {
+      flex: 1;
       padding: 20px;
+      padding-bottom: 80px; /* Espace pour l'input fixe */
       overflow-y: auto;
       scroll-behavior: smooth;
     }
     
-    /* Messages */
-    .botui-messages-container {
-      padding-bottom: 20px;
+    /* Zone d'actions fixe en bas */
+    .botui-actions-container {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 20px;
+      background-color: #ffffff;
+      border-top: 1px solid #e0e0e0;
+      z-index: 10;
     }
     
+    /* Messages */
     .botui-message {
       margin-bottom: 12px;
       animation: fadeInUp 0.3s ease-out;
+      display: flex;
+    }
+    
+    /* Alignement des messages utilisateur à droite */
+    .botui-message.human {
+      justify-content: flex-end;
     }
     
     /* Message du bot */
@@ -118,7 +143,6 @@
     .botui-message-content.human {
       background-color: #00e58c !important;
       color: #ffffff !important;
-      margin-left: auto !important;
       border: none !important;
     }
     
@@ -147,41 +171,32 @@
       animation-delay: 0.4s;
     }
     
-    /* Zone d'actions */
-    .botui-actions-container {
-      padding: 12px 20px;
-      background-color: #ffffff;
-      border-top: 1px solid #e0e0e0;
+    /* Input */
+    .botui-actions-text {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     
     .botui-actions-text-input {
-      width: 100% !important;
+      flex: 1;
       border: 1px solid #e0e0e0 !important;
       border-radius: 24px !important;
       padding: 10px 16px !important;
       font-size: 14px !important;
       outline: none !important;
       transition: border-color 0.2s;
+      background-color: #f5f6f8 !important;
     }
     
     .botui-actions-text-input:focus {
       border-color: #00e58c !important;
+      background-color: #ffffff !important;
     }
     
+    /* Cacher le bouton submit */
     .botui-actions-text-submit {
-      background-color: #00e58c !important;
-      color: white !important;
-      border: none !important;
-      border-radius: 50% !important;
-      width: 36px !important;
-      height: 36px !important;
-      margin-left: 8px !important;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    
-    .botui-actions-text-submit:hover {
-      background-color: #00c97a !important;
+      display: none !important;
     }
     
     /* Animations */
@@ -219,20 +234,20 @@
     }
     
     /* Scrollbar personnalisée */
-    .botui-container::-webkit-scrollbar {
+    .botui-messages-container::-webkit-scrollbar {
       width: 6px;
     }
     
-    .botui-container::-webkit-scrollbar-track {
+    .botui-messages-container::-webkit-scrollbar-track {
       background: transparent;
     }
     
-    .botui-container::-webkit-scrollbar-thumb {
+    .botui-messages-container::-webkit-scrollbar-thumb {
       background: #ccc;
       border-radius: 3px;
     }
     
-    .botui-container::-webkit-scrollbar-thumb:hover {
+    .botui-messages-container::-webkit-scrollbar-thumb:hover {
       background: #aaa;
     }
   </style>
@@ -264,6 +279,9 @@
     // Initialisation de BotUI
     var botui = new BotUI('botui-app');
     
+    // Variable pour éviter les doubles envois
+    let isProcessing = false;
+    
     // Message de bienvenue
     botui.message.add({
       delay: 500,
@@ -280,20 +298,20 @@
     
     // Fonction pour gérer la conversation
     function startConversation() {
+      if (isProcessing) return; // Éviter les doubles appels
+      
       botui.action.text({
         action: {
-          placeholder: 'Écrivez votre question ici...',
-          button: {
-            icon: 'send',
-            label: 'Envoyer'
-          }
+          placeholder: 'Écrivez votre question ici...'
         }
       }).then(function(res) {
-        // Afficher le message de l'utilisateur
-        botui.message.add({
-          human: true,
-          content: res.value
-        });
+        if (!res.value || res.value.trim() === '') {
+          return startConversation(); // Recommencer si vide
+        }
+        
+        isProcessing = true; // Marquer comme en cours de traitement
+        
+        // PAS d'ajout manuel du message utilisateur ici, BotUI le fait automatiquement
         
         // Afficher l'animation de typing
         showTyping().then(function(index) {
@@ -318,6 +336,7 @@
               delay: 300,
               content: data.reply || data.message || "Je suis désolé, je n'ai pas pu traiter votre demande. Pouvez-vous reformuler ?"
             }).then(function() {
+              isProcessing = false; // Réinitialiser le flag
               // Continuer la conversation
               startConversation();
             });
@@ -331,6 +350,7 @@
             botui.message.add({
               content: 'Désolé, une erreur s\'est produite. Veuillez réessayer.'
             }).then(function() {
+              isProcessing = false; // Réinitialiser le flag
               // Continuer la conversation malgré l'erreur
               startConversation();
             });
@@ -356,16 +376,24 @@
     
     // Gérer le scroll automatique vers le bas
     const observer = new MutationObserver(function() {
-      const container = document.querySelector('.botui-container');
+      const container = document.querySelector('.botui-messages-container');
       if (container) {
-        container.scrollTop = container.scrollHeight;
+        setTimeout(() => {
+          container.scrollTop = container.scrollHeight;
+        }, 100);
       }
     });
     
-    observer.observe(document.querySelector('#botui-app'), {
-      childList: true,
-      subtree: true
-    });
+    // Observer les changements dans le container des messages
+    setTimeout(() => {
+      const messagesContainer = document.querySelector('.botui-messages-container');
+      if (messagesContainer) {
+        observer.observe(messagesContainer, {
+          childList: true,
+          subtree: true
+        });
+      }
+    }, 500);
   </script>
 </body>
 </html>
