@@ -115,11 +115,12 @@
       margin-bottom: 12px;
       animation: fadeInUp 0.3s ease-out;
       display: flex;
+      width: 100%;
     }
     
     /* Alignement des messages utilisateur à droite */
     .botui-message.human {
-      justify-content: flex-end;
+      justify-content: flex-end !important;
     }
     
     /* Message du bot */
@@ -144,6 +145,20 @@
       background-color: #00e58c !important;
       color: #ffffff !important;
       border: none !important;
+      margin-left: auto !important;
+    }
+    
+    /* Forcer l'alignement à droite pour tous les messages humains */
+    .botui-messages-container .botui-message:has(.botui-message-content.human) {
+      justify-content: flex-end !important;
+    }
+    
+    /* Alternative pour forcer l'alignement à droite */
+    .botui-message[data-human="true"],
+    .botui-message.human,
+    .botui-message:has(.human) {
+      justify-content: flex-end !important;
+      text-align: right !important;
     }
     
     /* Animation de typing */
@@ -311,7 +326,11 @@
         
         isProcessing = true; // Marquer comme en cours de traitement
         
-        // PAS d'ajout manuel du message utilisateur ici, BotUI le fait automatiquement
+        // Ajouter manuellement le message utilisateur avec l'attribut human
+        botui.message.add({
+          human: true,
+          content: res.value
+        });
         
         // Afficher l'animation de typing
         showTyping().then(function(index) {
