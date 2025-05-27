@@ -132,6 +132,9 @@
       line-height: 1.5;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
       word-wrap: break-word;
+      word-break: normal;
+      overflow-wrap: break-word;
+      hyphens: auto;
     }
     
     .botui-message-content.text {
@@ -146,6 +149,8 @@
       color: #ffffff !important;
       border: none !important;
       margin-left: auto !important;
+      min-width: 60px;
+      text-align: center;
     }
     
     /* Forcer l'alignement à droite pour tous les messages humains */
@@ -326,11 +331,7 @@
         
         isProcessing = true; // Marquer comme en cours de traitement
         
-        // Ajouter manuellement le message utilisateur avec l'attribut human
-        botui.message.add({
-          human: true,
-          content: res.value
-        });
+        // NE PAS ajouter manuellement le message - BotUI le fait déjà
         
         // Afficher l'animation de typing
         showTyping().then(function(index) {
@@ -392,6 +393,18 @@
     setTimeout(function() {
       startConversation();
     }, 1000);
+    
+    // Forcer l'alignement des messages utilisateur à droite
+    const alignmentInterval = setInterval(() => {
+      document.querySelectorAll('.botui-message').forEach(msg => {
+        if (msg.querySelector('.botui-message-content.human') || 
+            msg.classList.contains('human') ||
+            msg.querySelector('[data-human="true"]')) {
+          msg.style.justifyContent = 'flex-end';
+          msg.style.textAlign = 'right';
+        }
+      });
+    }, 100);
     
     // Gérer le scroll automatique vers le bas
     const observer = new MutationObserver(function() {
