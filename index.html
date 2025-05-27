@@ -1,10 +1,145 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Assistant Prodecta</title>
-  </head>
-  <body>
-    <h1>Bienvenue dans l’assistant Prodecta 🤖</h1>
-  </body>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Assistant Prodecta</title>
+
+  <!-- BotUI CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/botui/build/botui.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/botui/build/botui-theme-default.css" />
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/botui/build/botui.min.js"></script>
+
+  <!-- Custom CSS -->
+  <style>
+    body {
+      margin: 0;
+      background: transparent;
+      font-family: 'Segoe UI', 'Inter', sans-serif;
+    }
+
+    .botui-app-container {
+      width: 380px;
+      height: 600px;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      overflow: hidden;
+      background-color: #f2f4f8;
+      z-index: 9999;
+    }
+
+    .chat-header {
+      background-color: #000;
+      color: #fff;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .chat-header img {
+      height: 32px;
+      width: 32px;
+    }
+
+    .chat-header-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header-text h4 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: bold;
+    }
+
+    .chat-header-text span {
+      font-size: 0.75rem;
+      color: #aaa;
+    }
+
+    .botui-message-content.text {
+      border-radius: 12px;
+      padding: 0.6rem 0.9rem;
+      font-size: 0.95rem;
+    }
+
+    .botui-message.bot .botui-message-content {
+      background-color: #000;
+      color: #fff;
+    }
+
+    .botui-message.human .botui-message-content {
+      background-color: #20b66e;
+      color: #fff;
+    }
+
+    .botui-actions-text-input {
+      border-radius: 12px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="botui-app-container">
+    <div class="chat-header">
+      <img src="https://assets.zyrosite.com/A1aPnpVLLRcE3wrw/design-sans-titre-YZ98G20Zg8SxoeM1.png" alt="Logo" />
+      <div class="chat-header-text">
+        <h4>Assistant Prodecta</h4>
+        <span>L’assistant qui vous accompagne 7j/7 24h/24</span>
+      </div>
+    </div>
+    <bot-ui></bot-ui>
+  </div>
+
+  <!-- Script BotUI -->
+  <script>
+    var botui = new BotUI('botui-app');
+
+    function playSound() {
+      const audio = new Audio("https://notificationsounds.com/storage/sounds/file-sounds-1151-pristine.mp3");
+      audio.volume = 0.3;
+      audio.play();
+    }
+
+    function sendToWebhook(message) {
+      return fetch('https://n8n.prodecta.shop/webhook/86d401ec-3893-4299-91a5-90c5236fe552/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message })
+      }).then(r => r.json());
+    }
+
+    function startChat() {
+      botui.message.add({ loading: true, delay: 500 }).then(function() {
+        botui.message.update(0, {
+          content: "Bonjour ! Comment puis-je vous assister aujourd’hui ? 🤖"
+        });
+      }).then(waitUserInput);
+    }
+
+    function waitUserInput() {
+      botui.action.text({
+        action: {
+          placeholder: "Tapez votre message ici..."
+        }
+      }).then(function(res) {
+        botui.message.add({ type: 'human', content: res.value });
+        botui.message.add({ loading: true, delay: 500 }).then(function(index) {
+          return sendToWebhook(res.value).then(response => {
+            playSound();
+            botui.message.update(index, { content: response.reply || "Désolé, je n’ai pas compris." });
+          });
+        }).then(waitUserInput);
+      });
+    }
+
+    startChat();
+  </script>
+</body>
 </html>
+
